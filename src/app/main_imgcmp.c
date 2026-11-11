@@ -1,3 +1,12 @@
+/* imgcmp - compares two PPM images and prints the metrics on one line.
+ *
+ * This is the tool that decides whether two implementations are "the same". maxdiff=0
+ * (and identical=yes) is the correctness gate used by scripts/check.sh: the CUDA and
+ * OpenMP results must match the sequential result byte for byte, not approximately.
+ *
+ *   build/imgcmp a.ppm b.ppm
+ *   identical=yes maxdiff=0 mae=0.0000 psnr=inf
+ */
 #include <math.h>
 #include <stdio.h>
 
@@ -19,6 +28,8 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    /* Identical images have infinite PSNR; print "inf" instead of a fake large number
+     * so a genuine equality can never be confused with a very good match. */
     double psnr = metrics_psnr(a, b);
     printf("identical=%s maxdiff=%d mae=%.4f psnr=", metrics_identical(a, b) ? "yes" : "no",
            metrics_max_diff(a, b), metrics_mae(a, b));

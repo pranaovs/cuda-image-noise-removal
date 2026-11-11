@@ -1,15 +1,16 @@
-/* Phase-06 step 5: how often does the filter's median fallback fire?
+/* fbcount - how often does the repair fallback actually fire?
  *
- * repair_pixel() normally averages the *clean* neighbours of a corrupted pixel. At high
- * noise density a whole 3x3 window can be corrupted, there are no clean neighbours, and
- * core.h falls back to the per-channel median of all 9. That path is rare, slow (sort
- * per channel) and it is the honest answer to "what breaks at 30% noise", so it needs a
- * number rather than a claim.
+ * Core's repair_pixel() averages the clean neighbours of a corrupted pixel. At high
+ * noise density a whole window can be corrupted, leaving nothing to average, and the
+ * code then falls back to the per-channel median of the window. That path is the
+ * honest answer to "what breaks at 30% noise", so the report needs a measured count
+ * rather than a claim about it.
  *
- * Counts, over the whole image: corrupted pixels, and corrupted pixels whose window has
- * zero clean pixels. Uses core.h directly, so the numbers describe the shipped code.
+ * Prints, over the whole image: corrupted pixels, and how many of them had no clean
+ * pixel in their window. Uses is_clean() from core.h, so the count describes the code
+ * that actually ships.
  *
- *   build/fbcount noisy.ppm [-n 3] [-d 0.6] [-m 2]
+ *   build/fbcount noisy.ppm [-n 3] [-d 0.5] [-m 4]
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s noisy.ppm [-n 3] [-d 0.6] [-m 2]\n", argv[0]);
+        fprintf(stderr, "usage: %s noisy.ppm [-n 3] [-d 0.5] [-m 4]\n", argv[0]);
         return 2;
     }
 
@@ -48,8 +49,9 @@ int main(int argc, char **argv)
             if (!mask[i])
                 continue;
             corrupted++;
-            /* The mask is complete for the pixels above/left but not for the ones
-             * below/right, so ask the detector directly instead of reading it. */
+            /* A single row-major pass has the mask complete only above and to the left,
+             * so the neighbours below/right are re-tested with is_clean() instead of
+             * being read from the half-built mask. Slower, but it cannot undercount. */
             int clean = 0;
             for (int dy = -r; dy <= r && !clean; dy++)
                 for (int dx = -r; dx <= r && !clean; dx++)

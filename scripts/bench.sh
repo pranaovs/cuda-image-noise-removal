@@ -49,7 +49,7 @@ threads_of() {
     case $1 in
     seq) echo 1 ;;
     omp*) echo "${1#omp}" ;;
-    *) echo 1 ;;   # cuda: threads column is 1, speedup is vs one CPU thread
+    *) echo 1 ;;   # cuda: the grid is not a thread count, so the column is 1
     esac
 }
 
@@ -82,7 +82,13 @@ for image in $IMAGES; do
         ms=$(median < "$TMP/runs.txt")
         [ "$impl" = seq ] && seq_ms=$ms
         speedup=$(awk -v b="$seq_ms" -v t="$ms" 'BEGIN { printf "%.3f", b/t }')
-        eff=$(awk -v s="$speedup" -v n="$threads" 'BEGIN { printf "%.3f", s/n }')
+        # efficiency = speedup / workers, so it is only meaningful for the CPU runs. CUDA
+        # gets an empty cell: its 256-thread blocks are not the unit being scaled.
+        if [ "$impl" = cuda ]; then
+            eff=""
+        else
+            eff=$(awk -v s="$speedup" -v n="$threads" 'BEGIN { printf "%.3f", s/n }')
+        fi
         mpix=$(awk -v p="$PIXELS" -v ms="$ms" 'BEGIN { printf "%.2f", p/(ms*1000.0) }')
         printf "%s,%s,%s,%s,%s,%s,%s,%s,%s\n" "$impl" "$threads" "$W" "$H" "$DENSITY" \
             "$ms" "$mpix" "$speedup" "$eff" >> "$OUT"

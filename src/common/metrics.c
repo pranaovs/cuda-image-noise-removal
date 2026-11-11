@@ -1,3 +1,9 @@
+/* Error metrics against the clean reference image.
+ *
+ * These are the numbers the report quotes, so they are defined once here and used by
+ * imgcmp, the denoisers' -q flag and the quality sweep. All of them iterate the raster
+ * in linear order: no 2-D indexing, no window, O(pixels) time and O(1) memory.
+ */
 #include "metrics.h"
 
 #include <math.h>
@@ -5,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Comparing images of different sizes is a bug in the caller, and silently averaging
+ * over the shorter one would hide it, so it aborts. */
 static void check_size(const Image *a, const Image *b)
 {
     if (a->w != b->w || a->h != b->h) {
@@ -13,6 +21,8 @@ static void check_size(const Image *a, const Image *b)
     }
 }
 
+/* Mean absolute error per channel, in 0..255. Cheaper and easier to read than PSNR;
+ * it exposes large single-pixel errors better because it does not square them. */
 double metrics_mae(const Image *a, const Image *b)
 {
     check_size(a, b);
@@ -23,6 +33,9 @@ double metrics_mae(const Image *a, const Image *b)
     return sum / (double)n;
 }
 
+/* Largest single-channel difference, 0..255. This is the equivalence test between
+ * implementations: maxdiff == 0 means the outputs are byte-identical, so no tolerance
+ * and no "close enough" argument is needed. */
 int metrics_max_diff(const Image *a, const Image *b)
 {
     check_size(a, b);
@@ -42,6 +55,8 @@ int metrics_identical(const Image *a, const Image *b)
     return memcmp(a->rgb, b->rgb, (size_t)a->w * (size_t)a->h * 3) == 0;
 }
 
+/* PSNR in dB: 10*log10(255^2 / MSE) over all channels. 8-bit peak = 255. Identical
+ * images give infinite dB, reported as inf rather than as a made-up cap. */
 double metrics_psnr(const Image *a, const Image *b)
 {
     check_size(a, b);

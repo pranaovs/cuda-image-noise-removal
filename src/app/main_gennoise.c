@@ -1,3 +1,12 @@
+/* gennoise - corrupts a clean image with impulse noise and writes the result.
+ *
+ * Input generation happens once per (image, density) and the file is then reused by
+ * every implementation and every repetition, so all of them are measured and scored on
+ * byte-identical input. The clean original is never modified: it is the ground truth
+ * for the PSNR/MAE comparisons.
+ *
+ *   build/gennoise clean.ppm noisy.ppm <density> <seed> [sp|rv]
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +27,7 @@ int main(int argc, char **argv)
     }
     unsigned long long seed = strtoull(argv[4], NULL, 0);
 
+    /* default model: salt and pepper, the classic impulse-noise case */
     NoiseMode mode = NOISE_SALT_PEPPER;
     if (argc > 5 && !noise_mode_parse(argv[5], &mode)) {
         fprintf(stderr, "unknown noise mode: %s (use sp or rv)\n", argv[5]);

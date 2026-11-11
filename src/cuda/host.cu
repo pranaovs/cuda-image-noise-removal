@@ -1,10 +1,21 @@
-/* Host side: the four steps from lecture 2 -
- *   cudaMalloc -> cudaMemcpy (H2D) -> kernel(s) -> cudaMemcpy (D2H)
- * plus cudaEvents, because a launch is asynchronous and the CPU clock cannot time it.
+/* Host side of the GPU implementation: the four steps from lecture 2, plus timing.
  *
- * Transfer time and kernel time are reported separately: if they were added into one
- * number, the PCIe copy would be charged to the GPU compute and every speedup claim
- * would be wrong.
+ *     cudaMalloc -> cudaMemcpy H2D -> kernel(s) -> cudaMemcpy D2H    (+ cudaFree)
+ *
+ * Two details matter for the numbers this code reports:
+ *
+ *  - Device buffers and cudaEvents are allocated once and reused across repetitions.
+ *    cudaMalloc of 50 MB costs more than the kernels on a 4096^2 image, and a per-call
+ *    allocation would show up in the measured milliseconds.
+ *
+ *  - Transfer time and kernel time are measured with cudaEvents and reported
+ *    separately. A launch is asynchronous, so a CPU clock cannot time the kernel at
+ *    all, and adding PCIe copies to kernel time would misattribute the GPU's speedup.
+ *
+ * The two kernel launches go to the default stream, so the second cannot start before
+ * the first has finished: that ordering is the algorithm's phase barrier (the filter
+ * kernel reads its neighbours' mask bytes). No explicit synchronization is needed
+ * between them, and none is used.
  */
 #include <cuda_runtime.h>
 
@@ -13,14 +24,16 @@
 
 #include "kernels.cuh"
 
-/* The __global__ prototypes stay out of kernels.cuh because that header is included by
- * the plain-C main. These two lines are the whole cross-file contract. */
+/* __global__ prototypes live here rather than in kernels.cuh, which main_denoise.c
+ * includes as plain C. These two declarations are the whole cross-file contract. */
 __global__ void detectKernel(const unsigned char *in, unsigned char *mask, int w, int h,
                              DenoiseParams p);
 __global__ void filterKernel(const unsigned char *in, const unsigned char *mask,
                              unsigned char *out, int w, int h, DenoiseParams p);
 
-/* Every CUDA call can fail; the cheapest debugging there is, is to say which one. */
+/* Every CUDA call can fail; naming the call that failed is the difference between a one
+ * minute and a one hour debugging session. Exits rather than returning, because a failed
+ * launch leaves no valid image to report on. */
 #define CUDA_CHECK(call)                                                                          \
     do {                                                                                          \
         cudaError_t e_ = (call);                                                                  \
@@ -33,15 +46,16 @@ __global__ void filterKernel(const unsigned char *in, const unsigned char *mask,
 
 static CudaTiming g_last = {0.0, 0.0, 0.0};
 
-/* Device buffers, grown on demand and kept for the next repetition: cudaMalloc of
- * ~100 MB costs more than the kernels and would show up in the reported ms. */
+/* Reused device buffers, grown on demand and kept for the next repetition. */
 static unsigned char *g_in = NULL, *g_out = NULL, *g_mask = NULL;
 static size_t g_nbytes = 0, g_npx = 0;
 
-/* Timestamps: 0 = before H2D, 1 = before kernels, 2 = after kernels, 3 = after D2H. */
+/* Timestamps: 0 = before H2D, 1 = before the kernels, 2 = after them, 3 = after D2H. */
 static cudaEvent_t g_ev[4];
 static int g_ev_ready = 0;
 
+/* (Re)allocates only when the image size changes, so a repeated run reuses the memory
+ * and pays no allocation cost inside the measured region. */
 static void buffers_reserve(size_t nbytes, size_t npx)
 {
     if (nbytes == g_nbytes && npx == g_npx)
@@ -73,8 +87,8 @@ void denoise_cuda(Image *img, unsigned char *mask, const DenoiseParams *p, CudaT
     }
     buffers_reserve(nbytes, (size_t)w * (size_t)h);
 
-    /* 256 threads per block (16x16, a multiple of 32); grid rounded up so w and h need
-     * not be multiples of 16. Overshooting threads bounce off the guard in the kernel. */
+    /* 256 threads per block (16x16, a multiple of 32) and a grid rounded up so w and h
+     * need not be multiples of 16; threads that overshoot the edge exit immediately. */
     dim3 block(16, 16);
     dim3 grid((w + 15) / 16, (h + 15) / 16);
 
@@ -82,8 +96,9 @@ void denoise_cuda(Image *img, unsigned char *mask, const DenoiseParams *p, CudaT
     CUDA_CHECK(cudaMemcpy(g_in, img->rgb, nbytes, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaEventRecord(g_ev[1]));
 
-    /* Two launches on the default stream. The second one cannot start before the first
-     * has finished, and that ordering is the phase barrier the algorithm needs. */
+    /* The launch boundary is the phase barrier: filterKernel reads mask bytes that
+     * detectKernel writes, and a kernel cannot start before the previous one completes
+     * on the same stream. */
     detectKernel<<<grid, block>>>(g_in, g_mask, w, h, *p);
     CUDA_CHECK(cudaGetLastError());
     filterKernel<<<grid, block>>>(g_in, g_mask, g_out, w, h, *p);

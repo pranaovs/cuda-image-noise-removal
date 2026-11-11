@@ -1,32 +1,48 @@
-/* The denoiser on the GPU: two kernels, one thread per pixel, plain global loads.
+/* GPU kernels for the two-phase filter: one thread per pixel, plain global loads.
  *
- * CUDA surface used - all of it from the course:
- *   __global__, __device__, threadIdx/blockIdx/blockDim, __syncthreads (not needed
- *   here), cudaGetLastError. No shared memory, no templates, no vector types, no
- *   __ldg, no __restrict__, no dynamic parallelism. Pixels are plain interleaved RGB
- *   bytes, the same layout the CPU uses, so both read the same array the same way.
+ * This is a transcription of src/common/core.h into device code - same fuzzy distance,
+ * same clamped window, same "the centre counts itself" rule, same integer mean and the
+ * same median fallback. The two files must stay in agreement because the correctness
+ * gate is byte-identical output against denoise_seq (scripts/check.sh).
  *
- * Two kernels, not one, because the launch boundary is the phase barrier: the filter
- * kernel reads the *neighbours'* mask bytes, so the whole mask must be finished first
- * and __syncthreads() could only order one block.
+ * Design decisions worth defending:
  *
- * Every expression is transcribed from core.h on purpose - same fuzzy distance, same
- * clamp-to-edge, same "centre counts itself" rule, same integer mean, same local
- * median fallback. If this file and core.h drift apart the symptom is maxdiff > 0
- * against denoise_seq.
+ *  - Two kernels, not one. The launch boundary is the algorithm's phase barrier: the
+ *    filter kernel reads its neighbours' mask bytes, so the whole mask must be finished
+ *    first. __syncthreads() cannot do this, it only orders one block; a kernel boundary
+ *    is the only grid-wide barrier available without cooperative launch.
+ *
+ *  - One thread per pixel, no shared memory. The 3x3 windows overlap 8/9, so a shared
+ *    tile is the first optimization anyone tries - it was written, measured and deleted
+ *    the kernel by +0.2%, because the kernel is limited by double-precision arithmetic,
+ *    not by memory traffic (results/04-cuda-variants.md has the probes). The tiled
+ *    version was deleted rather than kept as dead code.
+ *
+ *  - double for the fuzzy metric, integer for the filter. The metric is where the
+ *    course's precision discussion lives: this consumer GPU runs FP64 at 1/64 of its
+ *    FP32 rate, so the choice costs real time, but it guarantees the same result as the
+ *    CPU and keeps the comparison honest. This one expression, evaluated nine times per
+ *    pixel, is essentially the GPU's whole running time.
+ *
+ * CUDA surface used, all of it from the course: __global__, __device__, threadIdx,
+ * blockIdx, blockDim, 16x16 blocks (256 threads, a multiple of 32), and
+ * cudaGetLastError after each launch. No templates, no __ldg, no __restrict__, no
+ * vector types, no dynamic parallelism, no libraries.
  */
 #include <cuda_runtime.h>
 
 #include "kernels.cuh"
 
-/* Keep a coordinate inside the image by replicating the edge, like core.h does. */
+/* Edge-replicating clamp, identical to img_clamp() in image.h: a window that leaves
+ * the image repeats the border row/column instead of being cut short. */
 __device__ int dev_clamp(int v, int hi)
 {
     return v < 0 ? 0 : (v >= hi ? hi - 1 : v);
 }
 
-/* One channel of the fuzzy metric: identical channels -> 1.0, 255 apart -> 0.0.
- * The distance is 1 - (product over the three channels). */
+/* One channel of the fuzzy metric: equal channels give 1.0, 255 apart gives 0.0.
+ * The distance is 1 - (product of the three channel terms), so it matches
+ * fuzzy_dist() exactly rather than approximating it. */
 __device__ double dev_chan_term(int a, int b)
 {
     int d = a - b;
@@ -35,8 +51,11 @@ __device__ double dev_chan_term(int a, int b)
     return 1.0 - (double)d / 255.0;
 }
 
-/* Phase 1 for one pixel: count how many window pixels are within d of the centre,
- * the centre included, and call it clean when there are at least m + 1 of them. */
+/* Phase 1 for one pixel: how many window pixels are within d of the centre, the centre
+ * included. Clean means at least m+1 of them, i.e. m peers besides itself.
+ *
+ * Cost: window^2 (9 for the default 3x3) cube-root-free distance evaluations, each one
+ * a product of three double divisions. This is the GPU's whole running time. */
 __device__ int dev_is_clean(const unsigned char *in, int w, int h, int x, int y, DenoiseParams p)
 {
     int r = p.window / 2;
@@ -56,7 +75,9 @@ __device__ int dev_is_clean(const unsigned char *in, int w, int h, int x, int y,
     return count >= p.m + 1;
 }
 
-/* Insertion sort, used only by the rare median fallback (n <= 225). */
+/* Insertion sort, used only by the rare median fallback (at most 225 elements).
+ * Device code has no qsort, and the per-pixel cost is irrelevant because this branch
+ * needs a window in which every single pixel is corrupted. */
 __device__ void dev_sort_u8(unsigned char *v, int n)
 {
     for (int i = 1; i < n; i++) {
@@ -70,7 +91,13 @@ __device__ void dev_sort_u8(unsigned char *v, int n)
     }
 }
 
-/* Kernel 1 - detection. Writes the mask: 1 = corrupted, 0 = clean. */
+/* Kernel 1 - detection. Writes one byte per pixel: 1 = corrupted, 0 = clean.
+ *
+ * The grid is rounded up to whole blocks, so threads past the right/bottom edge exist
+ * and must return before touching memory. 2-D indexing is deliberate: threadIdx.x is
+ * the column, so consecutive threads read consecutive bytes in a row and the loads
+ * coalesce into full 128-byte lines. Swapping x and y here would multiply the memory
+ * transactions per warp without changing a single output value. */
 __global__ void detectKernel(const unsigned char *in, unsigned char *mask, int w, int h,
                              DenoiseParams p)
 {
@@ -81,10 +108,17 @@ __global__ void detectKernel(const unsigned char *in, unsigned char *mask, int w
     mask[(size_t)y * (size_t)w + (size_t)x] = dev_is_clean(in, w, h, x, y, p) ? 0 : 1;
 }
 
-/* Kernel 2 - filtering. Clean pixels are copied through; corrupted ones get the mean
- * of their *clean* neighbours only, which is what keeps edges instead of blurring
- * them. If every neighbour is corrupted (high noise density) fall back to the median
- * of the whole window. */
+/* Kernel 2 - filtering. Clean pixels are copied through unchanged; corrupted ones get
+ * the mean of their *clean* neighbours only, which is what preserves edges instead of
+ * blurring them. When every neighbour is corrupted (possible above roughly 30% noise
+ * density) it falls back to the per-channel median of the whole window.
+ *
+ * Divergence: a warp whose 32 pixels mix clean and corrupted runs both paths. The clean
+ * path is three byte copies and a return, so the cost lands in the tail rather than in
+ * the 9-iteration window loop; that is why the branch is cheap here.
+ *
+ * Reads mask[] for the whole window, which is only valid because the detect kernel has
+ * finished - that ordering is the launch boundary in host.cu, not a coincidence. */
 __global__ void filterKernel(const unsigned char *in, const unsigned char *mask,
                              unsigned char *out, int w, int h, DenoiseParams p)
 {

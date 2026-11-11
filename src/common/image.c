@@ -1,15 +1,32 @@
+/* Binary PPM (P6) reading and writing.
+ *
+ * PPM is used instead of an image library on purpose: the format is a short ASCII
+ * header followed by raw raster bytes, so loading an image costs 40 lines and the
+ * project has no external dependency on the GPU machine.
+ *
+ *     P6\n<width> <height>\n<maxval>\n<width*height*3 raw bytes>
+ *
+ * Header fields may be separated by any whitespace and may be interleaved with '#'
+ * comments, which is why the reader walks the file byte by byte instead of calling
+ * fscanf: mixing fscanf with ungetc loses a byte on glibc.
+ *
+ * Only maxval 255 (8-bit) is supported - the filter works on single bytes.
+ */
 #include "image.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/* Every failure here is fatal for the run: print the path and what was wrong. */
 static void die(const char *msg, const char *path)
 {
     fprintf(stderr, "image: %s: %s\n", path, msg);
     exit(1);
 }
 
+/* Allocates an uninitialised w*h*3 buffer. Dimensions are validated because a
+ * negative or zero size would otherwise turn into a huge size_t. */
 Image *image_alloc(int w, int h)
 {
     if (w <= 0 || h <= 0) {
@@ -31,6 +48,9 @@ Image *image_alloc(int w, int h)
     return img;
 }
 
+/* Deep copy. The benchmark loop needs a pristine input for every repetition, so each
+ * run starts from a clone of the same noisy image rather than from the previous run's
+ * output. */
 Image *image_clone(const Image *src)
 {
     Image *img = image_alloc(src->w, src->h);
@@ -46,8 +66,8 @@ void image_free(Image *img)
     free(img);
 }
 
-/* Next decimal header value, skipping whitespace and '#' comments.
- * Hand-rolled because mixing ungetc with fscanf loses data on glibc. */
+/* Reads the next decimal header field, skipping whitespace and '#' comment lines.
+ * Returns 0 at end of file. One pushback byte at most, which is well defined. */
 static int next_int(FILE *f, int *out)
 {
     int c;
@@ -109,6 +129,8 @@ Image *image_read(const char *path)
     return img;
 }
 
+/* Writes a canonical 3-line header (no comment, maxval 255) so files can be diffed
+ * and compared byte for byte with `cmp` across implementations. */
 int image_write(const Image *img, const char *path)
 {
     FILE *f = fopen(path, "wb");

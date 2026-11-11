@@ -5,18 +5,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Largest odd window core.h supports (bounds the local median buffer). */
+/* Largest supported odd window side. Bounds the stack buffer repair_pixel() sorts in
+ * its median fallback, so this is a memory limit, not a tuning knob. */
 #define PARAMS_MAX_WINDOW 15
 
+/* Tunables of the paper's filter, plus the CLI helpers shared by every binary so the
+ * three denoisers cannot drift apart in how they read their arguments. */
 typedef struct {
-    int window;  /* n, side of the square window; odd, >= 3 */
-    double d;    /* fuzzy tolerance, 0..1 */
-    int m;       /* peer cardinality; corrupted if peer count < m + 1 */
+    int window; /* n, side of the square neighbourhood; odd, >= 3 */
+    double d;   /* fuzzy tolerance in [0,1]: lower = stricter "looks like the centre" */
+    int m;      /* required peer count - 1; a pixel is corrupted below m+1 peers */
 } DenoiseParams;
 
-/* Defaults come from the phase-06 parameter sweep (results/quality_params.csv):
- * d=0.5, m=4 tops the grid at 32.26 dB on 10% salt & pepper, and it is an interior
- * maximum in both directions (d=0.4 and d=0.6 are worse, m=3 and m=5 are worse). */
+/* Shipped defaults, taken from the parameter sweep in results/quality_params.csv:
+ * d=0.5, m=4 is the maximum on 10% salt-and-pepper noise and an interior optimum in
+ * both directions (d=0.4/0.6 and m=3/5 all score lower), so it is a knee rather than
+ * the edge of the tested grid. */
 static inline void params_default(DenoiseParams *p)
 {
     p->window = 3;
@@ -30,8 +34,8 @@ static inline int params_valid(const DenoiseParams *p)
            p->d >= 0.0 && p->d <= 1.0 && p->m >= 1;
 }
 
-/* Consumes argv[*i] and, when it is one of -d/-m/-n, also the following value.
- * Returns 1 if handled. Shared by every denoiser binary so the flags never drift. */
+/* Handles -d/-m/-n in argv[*i], consuming the value that follows. Returns 1 if this
+ * argument belonged to the parameter set. Used by main_denoise and fbcount. */
 static inline int params_flag(int argc, char **argv, int *i, DenoiseParams *p)
 {
     const char *a = argv[*i];

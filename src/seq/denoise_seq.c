@@ -1,8 +1,19 @@
+/* Sequential implementation - the correctness reference and the speedup baseline.
+ *
+ * Phase 1 writes a byte per pixel (1 = corrupted, 0 = clean). Phase 2 rewrites only
+ * the corrupted pixels into a separate output buffer and swaps it in at the end.
+ *
+ * The end of the first loop is the algorithm's only barrier: phase 2 reads its
+ * neighbours' mask bytes, so the whole mask has to exist before any pixel is
+ * repaired. That is why the two phases are not fused into one pass, and it is the one
+ * ordering constraint every parallel version has to reproduce.
+ *
+ * Both loops are embarrassingly parallel - each pixel reads 9 values and writes 1, and
+ * no pixel is written twice - so this file differs from denoise_omp.c only in the two
+ * OpenMP pragmas.
+ */
 #include "core.h"
 
-/* Sequential reference: two loops, one implicit barrier between them (the end of
- * the first loop). Phase 2 cannot read a partial mask, which is the only reason
- * the phases are not fused. */
 void denoise_seq_impl(Image *img, unsigned char *mask, const DenoiseParams *p)
 {
     const int w = img->w, h = img->h;

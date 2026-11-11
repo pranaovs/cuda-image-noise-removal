@@ -1,8 +1,20 @@
-/* One main() for every denoiser binary. The only build-time difference is which
- * implementation function is linked in, so seq/omp/cuda share argument handling
- * and timing placement exactly - otherwise a speedup could be an artefact.
+/* One main() shared by all three denoiser binaries.
  *
- * Compile with: -DDENOISE_FN=denoise_seq_impl -DIMPL_NAME='"seq"'
+ * The build links exactly one implementation into this file - denoise_seq_impl,
+ * denoise_omp_impl or denoise_cuda_impl - selected by -DDENOISE_FN, so argument
+ * handling, the repetition loop and the placement of the timer are literally the same
+ * code for every implementation. If each one had its own main, a difference in where
+ * the clock starts or stops could fake a speedup; this removes that whole class of
+ * doubt, and the only thing that differs between the binaries is the function called.
+ *
+ * The output line is machine-readable on purpose - scripts/bench.sh greps it into a CSV,
+ * so a new measurement is a new row and the plots stay reproducible:
+ *
+ *   impl=omp threads=8 ms=18.717 pixels=1048576 mpix_s=56.02 psnr=32.2613 mae=0.9100
+ *
+ * Reporting rules: `ms` is the best of -r repetitions (each starting from a pristine
+ * copy of the noisy input), `pixels` is w*h, and the CUDA binary adds the
+ * h2d/kernel/d2h split so the kernel time can be quoted without the PCIe copies.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,8 +40,10 @@
 #error "IMPL_NAME must be a quoted string naming the implementation"
 #endif
 
+/* Linked in from denoise_<impl>.c/.cu - see the CMake target for each binary. */
 void DENOISE_FN(Image *img, unsigned char *mask, const DenoiseParams *p);
 
+/* CLOCK_MONOTONIC: unaffected by wall-clock adjustments, which a timed loop needs. */
 static double now_ms(void)
 {
     struct timespec ts;
@@ -90,6 +104,8 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    /* One mask buffer for all repetitions: it is overwritten from scratch every time,
+     * so nothing carries over between runs. */
     unsigned char *mask = malloc((size_t)src->w * (size_t)src->h);
     if (!mask) {
         fprintf(stderr, "out of memory for mask\n");
@@ -125,8 +141,8 @@ int main(int argc, char **argv)
         return 1;
 
     double pixels = (double)work->w * (double)work->h;
-    /* threads= is in the report line of every binary, so the CSV schema is the same
-     * whether or not the target was compiled with OpenMP. */
+    /* threads= is reported by every binary, so the CSV schema does not depend on
+     * whether this target was compiled with OpenMP. */
 #ifdef DENOISE_HAS_OMP
     int threads = omp_get_max_threads();
 #else
@@ -140,8 +156,8 @@ int main(int argc, char **argv)
            best_t.d2h_ms);
 #endif
     if (ref) {
-        /* 4 decimals: phase 06 proves quality is implementation-independent, which
-         * needs more resolution than 2 decimals. */
+        /* 4 decimals: the quality sweep compares implementations that must agree to the
+         * last digit, which 2 decimals would hide. */
         printf(" psnr=%.4f mae=%.4f", metrics_psnr(work, ref), metrics_mae(work, ref));
     }
     printf("\n");
