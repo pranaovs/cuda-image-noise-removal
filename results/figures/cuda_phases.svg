@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460">
+<rect x="0" y="0" width="720" height="460" fill="#ffffff"/><text x="360" y="26" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="15" font-weight="bold">CUDA: kernel time vs PCIe transfer time</text><rect x="70" y="46" width="500" height="358" fill="none" stroke="#333"/><text x="320" y="446" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12"></text><text transform="translate(16,225) rotate(-90)" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12">milliseconds</text>
+<line x1="65" y1="404.0" x2="70" y2="404.0" stroke="#333"/><line x1="70" y1="404.0" x2="570" y2="404.0" stroke="#e8e8e8"/><text x="61" y="408.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">0</text>
+<line x1="65" y1="284.7" x2="70" y2="284.7" stroke="#333"/><line x1="70" y1="284.7" x2="570" y2="284.7" stroke="#e8e8e8"/><text x="61" y="288.7" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">50</text>
+<line x1="65" y1="165.3" x2="70" y2="165.3" stroke="#333"/><line x1="70" y1="165.3" x2="570" y2="165.3" stroke="#e8e8e8"/><text x="61" y="169.3" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">100</text>
+<line x1="65" y1="46.0" x2="70" y2="46.0" stroke="#333"/><line x1="70" y1="46.0" x2="570" y2="46.0" stroke="#e8e8e8"/><text x="61" y="50.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">150</text>
+<rect x="88.8" y="399.4" width="28.2" height="4.6" fill="#1b6ca8"/>
+<rect x="117.9" y="403.8" width="28.2" height="0.2" fill="#d68910"/>
+<rect x="147.1" y="403.7" width="28.2" height="0.3" fill="#7f8c8d"/>
+<text x="132.5" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">512x512</text>
+<rect x="213.8" y="384.1" width="28.2" height="19.9" fill="#1b6ca8"/>
+<rect x="242.9" y="403.2" width="28.2" height="0.8" fill="#d68910"/>
+<rect x="272.1" y="403.1" width="28.2" height="0.9" fill="#7f8c8d"/>
+<text x="257.5" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">1024x1024</text>
+<rect x="338.8" y="337.0" width="28.2" height="67.0" fill="#1b6ca8"/>
+<rect x="367.9" y="401.2" width="28.2" height="2.8" fill="#d68910"/>
+<rect x="397.1" y="400.2" width="28.2" height="3.8" fill="#7f8c8d"/>
+<text x="382.5" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">2048x2048</text>
+<rect x="463.8" y="130.4" width="28.2" height="273.6" fill="#1b6ca8"/>
+<rect x="492.9" y="393.0" width="28.2" height="11.0" fill="#d68910"/>
+<rect x="522.1" y="391.9" width="28.2" height="12.1" fill="#7f8c8d"/>
+<text x="507.5" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">4096x4096</text>
+<line x1="584" y1="56" x2="604" y2="56" stroke="#1b6ca8" stroke-width="2.5"/><text x="610" y="60" font-family="DejaVu Sans,sans-serif" font-size="11">kernel</text>
+<line x1="584" y1="74" x2="604" y2="74" stroke="#d68910" stroke-width="2.5"/><text x="610" y="78" font-family="DejaVu Sans,sans-serif" font-size="11">h2d</text>
+<line x1="584" y1="92" x2="604" y2="92" stroke="#7f8c8d" stroke-width="2.5"/><text x="610" y="96" font-family="DejaVu Sans,sans-serif" font-size="11">d2h</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460">
+<rect x="0" y="0" width="720" height="460" fill="#ffffff"/><text x="360" y="26" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="15" font-weight="bold">Reconstruction quality vs noise density</text><rect x="70" y="46" width="500" height="358" fill="none" stroke="#333"/><text x="320" y="446" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12">salt &amp; pepper density</text><text transform="translate(16,225) rotate(-90)" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12">PSNR (dB)</text>
+<line x1="70.0" y1="404" x2="70.0" y2="409" stroke="#333"/><text x="70.0" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">0</text>
+<line x1="65" y1="404.0" x2="70" y2="404.0" stroke="#333"/><line x1="70" y1="404.0" x2="570" y2="404.0" stroke="#e8e8e8"/><text x="61" y="408.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">0</text>
+<line x1="65" y1="314.5" x2="70" y2="314.5" stroke="#333"/><line x1="70" y1="314.5" x2="570" y2="314.5" stroke="#e8e8e8"/><text x="61" y="318.5" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">10</text>
+<line x1="65" y1="225.0" x2="70" y2="225.0" stroke="#333"/><line x1="70" y1="225.0" x2="570" y2="225.0" stroke="#e8e8e8"/><text x="61" y="229.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">20</text>
+<line x1="65" y1="135.5" x2="70" y2="135.5" stroke="#333"/><line x1="70" y1="135.5" x2="570" y2="135.5" stroke="#e8e8e8"/><text x="61" y="139.5" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">30</text>
+<line x1="65" y1="46.0" x2="70" y2="46.0" stroke="#333"/><line x1="70" y1="46.0" x2="570" y2="46.0" stroke="#e8e8e8"/><text x="61" y="50.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">40</text>
+<polyline points="86.7,191.2 103.3,217.9 153.3,254.0 236.7,280.5 320.0,296.2 403.3,307.3 486.7,316.2 570.0,323.3" fill="none" stroke="#c0392b" stroke-width="2"/>
+<circle cx="86.7" cy="191.2" r="3.2" fill="#c0392b"/>
+<circle cx="103.3" cy="217.9" r="3.2" fill="#c0392b"/>
+<circle cx="153.3" cy="254.0" r="3.2" fill="#c0392b"/>
+<circle cx="236.7" cy="280.5" r="3.2" fill="#c0392b"/>
+<circle cx="320.0" cy="296.2" r="3.2" fill="#c0392b"/>
+<circle cx="403.3" cy="307.3" r="3.2" fill="#c0392b"/>
+<circle cx="486.7" cy="316.2" r="3.2" fill="#c0392b"/>
+<circle cx="570.0" cy="323.3" r="3.2" fill="#c0392b"/>
+<line x1="584" y1="56" x2="604" y2="56" stroke="#c0392b" stroke-width="2.5"/><text x="610" y="60" font-family="DejaVu Sans,sans-serif" font-size="11">noisy input</text>
+<polyline points="86.7,84.8 103.3,88.4 153.3,99.7 236.7,115.3 320.0,130.7 403.3,148.9 486.7,173.8 570.0,196.7" fill="none" stroke="#1b6ca8" stroke-width="2"/>
+<circle cx="86.7" cy="84.8" r="3.2" fill="#1b6ca8"/>
+<circle cx="103.3" cy="88.4" r="3.2" fill="#1b6ca8"/>
+<circle cx="153.3" cy="99.7" r="3.2" fill="#1b6ca8"/>
+<circle cx="236.7" cy="115.3" r="3.2" fill="#1b6ca8"/>
+<circle cx="320.0" cy="130.7" r="3.2" fill="#1b6ca8"/>
+<circle cx="403.3" cy="148.9" r="3.2" fill="#1b6ca8"/>
+<circle cx="486.7" cy="173.8" r="3.2" fill="#1b6ca8"/>
+<circle cx="570.0" cy="196.7" r="3.2" fill="#1b6ca8"/>
+<line x1="584" y1="74" x2="604" y2="74" stroke="#1b6ca8" stroke-width="2.5"/><text x="610" y="78" font-family="DejaVu Sans,sans-serif" font-size="11">denoised</text>
+</svg>

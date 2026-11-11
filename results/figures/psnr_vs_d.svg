@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460">
+<rect x="0" y="0" width="720" height="460" fill="#ffffff"/><text x="360" y="26" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="15" font-weight="bold">Quality vs fuzzy tolerance d, per cardinality m</text><rect x="70" y="46" width="500" height="358" fill="none" stroke="#333"/><text x="320" y="446" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12">d</text><text transform="translate(16,225) rotate(-90)" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="12">PSNR (dB)</text>
+<line x1="-55.0" y1="404" x2="-55.0" y2="409" stroke="#333"/><text x="-55.0" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">0</text>
+<line x1="570.0" y1="404" x2="570.0" y2="409" stroke="#333"/><text x="570.0" y="424" text-anchor="middle" font-family="DejaVu Sans,sans-serif" font-size="11">1</text>
+<line x1="65" y1="439.9" x2="70" y2="439.9" stroke="#333"/><line x1="70" y1="439.9" x2="570" y2="439.9" stroke="#e8e8e8"/><text x="61" y="443.9" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">15</text>
+<line x1="65" y1="341.4" x2="70" y2="341.4" stroke="#333"/><line x1="70" y1="341.4" x2="570" y2="341.4" stroke="#e8e8e8"/><text x="61" y="345.4" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">20</text>
+<line x1="65" y1="242.9" x2="70" y2="242.9" stroke="#333"/><line x1="70" y1="242.9" x2="570" y2="242.9" stroke="#e8e8e8"/><text x="61" y="246.9" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">25</text>
+<line x1="65" y1="144.5" x2="70" y2="144.5" stroke="#333"/><line x1="70" y1="144.5" x2="570" y2="144.5" stroke="#e8e8e8"/><text x="61" y="148.5" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">30</text>
+<line x1="65" y1="46.0" x2="70" y2="46.0" stroke="#333"/><line x1="70" y1="46.0" x2="570" y2="46.0" stroke="#e8e8e8"/><text x="61" y="50.0" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="11">35</text>
+<polyline points="70.0,371.6 195.0,371.1 257.5,371.6 320.0,372.8 382.5,374.7 445.0,378.1 507.5,384.3" fill="none" stroke="#1b6ca8" stroke-width="2"/>
+<circle cx="70.0" cy="371.6" r="3.2" fill="#1b6ca8"/>
+<circle cx="195.0" cy="371.1" r="3.2" fill="#1b6ca8"/>
+<circle cx="257.5" cy="371.6" r="3.2" fill="#1b6ca8"/>
+<circle cx="320.0" cy="372.8" r="3.2" fill="#1b6ca8"/>
+<circle cx="382.5" cy="374.7" r="3.2" fill="#1b6ca8"/>
+<circle cx="445.0" cy="378.1" r="3.2" fill="#1b6ca8"/>
+<circle cx="507.5" cy="384.3" r="3.2" fill="#1b6ca8"/>
+<line x1="584" y1="56" x2="604" y2="56" stroke="#1b6ca8" stroke-width="2.5"/><text x="610" y="60" font-family="DejaVu Sans,sans-serif" font-size="11">m=1</text>
+<polyline points="70.0,239.2 195.0,231.9 257.5,233.4 320.0,239.1 382.5,249.4 445.0,266.6 507.5,294.3" fill="none" stroke="#c0392b" stroke-width="2"/>
+<circle cx="70.0" cy="239.2" r="3.2" fill="#c0392b"/>
+<circle cx="195.0" cy="231.9" r="3.2" fill="#c0392b"/>
+<circle cx="257.5" cy="233.4" r="3.2" fill="#c0392b"/>
+<circle cx="320.0" cy="239.1" r="3.2" fill="#c0392b"/>
+<circle cx="382.5" cy="249.4" r="3.2" fill="#c0392b"/>
+<circle cx="445.0" cy="266.6" r="3.2" fill="#c0392b"/>
+<circle cx="507.5" cy="294.3" r="3.2" fill="#c0392b"/>
+<line x1="584" y1="74" x2="604" y2="74" stroke="#c0392b" stroke-width="2.5"/><text x="610" y="78" font-family="DejaVu Sans,sans-serif" font-size="11">m=2</text>
+<polyline points="70.0,157.4 195.0,125.1 257.5,121.9 320.0,132.2 382.5,158.9 445.0,197.8 507.5,250.5" fill="none" stroke="#1e8449" stroke-width="2"/>
+<circle cx="70.0" cy="157.4" r="3.2" fill="#1e8449"/>
+<circle cx="195.0" cy="125.1" r="3.2" fill="#1e8449"/>
+<circle cx="257.5" cy="121.9" r="3.2" fill="#1e8449"/>
+<circle cx="320.0" cy="132.2" r="3.2" fill="#1e8449"/>
+<circle cx="382.5" cy="158.9" r="3.2" fill="#1e8449"/>
+<circle cx="445.0" cy="197.8" r="3.2" fill="#1e8449"/>
+<circle cx="507.5" cy="250.5" r="3.2" fill="#1e8449"/>
+<line x1="584" y1="92" x2="604" y2="92" stroke="#1e8449" stroke-width="2.5"/><text x="610" y="96" font-family="DejaVu Sans,sans-serif" font-size="11">m=3</text>
+<polyline points="70.0,146.1 195.0,114.8 257.5,99.9 320.0,101.9 382.5,129.1 445.0,173.0 507.5,234.5" fill="none" stroke="#8e44ad" stroke-width="2"/>
+<circle cx="70.0" cy="146.1" r="3.2" fill="#8e44ad"/>
+<circle cx="195.0" cy="114.8" r="3.2" fill="#8e44ad"/>
+<circle cx="257.5" cy="99.9" r="3.2" fill="#8e44ad"/>
+<circle cx="320.0" cy="101.9" r="3.2" fill="#8e44ad"/>
+<circle cx="382.5" cy="129.1" r="3.2" fill="#8e44ad"/>
+<circle cx="445.0" cy="173.0" r="3.2" fill="#8e44ad"/>
+<circle cx="507.5" cy="234.5" r="3.2" fill="#8e44ad"/>
+<line x1="584" y1="110" x2="604" y2="110" stroke="#8e44ad" stroke-width="2.5"/><text x="610" y="114" font-family="DejaVu Sans,sans-serif" font-size="11">m=4</text>
+<polyline points="70.0,141.9 195.0,127.2 257.5,112.7 320.0,105.2 382.5,122.1 445.0,161.6 507.5,224.9" fill="none" stroke="#d68910" stroke-width="2"/>
+<circle cx="70.0" cy="141.9" r="3.2" fill="#d68910"/>
+<circle cx="195.0" cy="127.2" r="3.2" fill="#d68910"/>
+<circle cx="257.5" cy="112.7" r="3.2" fill="#d68910"/>
+<circle cx="320.0" cy="105.2" r="3.2" fill="#d68910"/>
+<circle cx="382.5" cy="122.1" r="3.2" fill="#d68910"/>
+<circle cx="445.0" cy="161.6" r="3.2" fill="#d68910"/>
+<circle cx="507.5" cy="224.9" r="3.2" fill="#d68910"/>
+<line x1="584" y1="128" x2="604" y2="128" stroke="#d68910" stroke-width="2.5"/><text x="610" y="132" font-family="DejaVu Sans,sans-serif" font-size="11">m=5</text>
+<polyline points="70.0,134.7 195.0,133.8 257.5,125.6 320.0,117.5 382.5,124.3 445.0,154.4 507.5,215.5" fill="none" stroke="#117a65" stroke-width="2"/>
+<circle cx="70.0" cy="134.7" r="3.2" fill="#117a65"/>
+<circle cx="195.0" cy="133.8" r="3.2" fill="#117a65"/>
+<circle cx="257.5" cy="125.6" r="3.2" fill="#117a65"/>
+<circle cx="320.0" cy="117.5" r="3.2" fill="#117a65"/>
+<circle cx="382.5" cy="124.3" r="3.2" fill="#117a65"/>
+<circle cx="445.0" cy="154.4" r="3.2" fill="#117a65"/>
+<circle cx="507.5" cy="215.5" r="3.2" fill="#117a65"/>
+<line x1="584" y1="146" x2="604" y2="146" stroke="#117a65" stroke-width="2.5"/><text x="610" y="150" font-family="DejaVu Sans,sans-serif" font-size="11">m=6</text>
+<polyline points="70.0,133.0 195.0,138.0 257.5,137.4 320.0,134.6 382.5,139.0 445.0,157.1 507.5,207.4" fill="none" stroke="#7f8c8d" stroke-width="2"/>
+<circle cx="70.0" cy="133.0" r="3.2" fill="#7f8c8d"/>
+<circle cx="195.0" cy="138.0" r="3.2" fill="#7f8c8d"/>
+<circle cx="257.5" cy="137.4" r="3.2" fill="#7f8c8d"/>
+<circle cx="320.0" cy="134.6" r="3.2" fill="#7f8c8d"/>
+<circle cx="382.5" cy="139.0" r="3.2" fill="#7f8c8d"/>
+<circle cx="445.0" cy="157.1" r="3.2" fill="#7f8c8d"/>
+<circle cx="507.5" cy="207.4" r="3.2" fill="#7f8c8d"/>
+<line x1="584" y1="164" x2="604" y2="164" stroke="#7f8c8d" stroke-width="2.5"/><text x="610" y="168" font-family="DejaVu Sans,sans-serif" font-size="11">m=7</text>
+</svg>

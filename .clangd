@@ -1,0 +1,8 @@
+# There is no CUDA toolkit on this box: nvcc and the CUDA headers live only on the
+# `gpu` host (see GPU.md), so clangd cannot parse .cu/.cuh here and reports every
+# CUDA keyword as an unknown type. The authority for these files is
+# `ssh gpu 'cmake --build build'`. Diagnostics stay on for every other language.
+If:
+  PathMatch: .*\.(cu|cuh)$
+Diagnostics:
+  Suppress: "(?i).*"

@@ -1,0 +1,27 @@
+# Experimental setup — captured from `ssh gpu`
+
+## GPU (CUDA device 0)
+- Name:            NVIDIA GeForce RTX 4050 Laptop GPU
+- VRAM:            6141 MiB (6 GB)
+- Compute cap:     8.9 (Ada) -> -arch=sm_89 / CMAKE_CUDA_ARCHITECTURES 89
+- Driver:          615.78.08
+- CUDA UMD:        13.4
+- Power cap:       70 W (observed idle 13 W)  # laptop part, shared with display
+- Host:            neobox (10.197.21.171), user neo
+
+## CUDA toolkit
+- nvcc:            CUDA 13.4, V13.4.92 (build cuda_13.4.r13.4)
+- Location:        /usr/local/cuda-13.4/bin (symlink /usr/local/cuda)
+- PATH:            exported in $ZDOTDIR/.zshenv (/home/neo/.config/zsh/.zshenv);
+                  ZDOTDIR is redirected, so $HOME/.zshenv is ignored. Works in non-interactive ssh.
+- compute-sanitizer: 2026.3.0.0, package cuda-sanitizer-13-4 (separate from cuda-toolkit),
+                  /usr/local/cuda-13.4/bin
+
+## CPU
+- Model:           13th Gen Intel(R) Core(TM) i7-13700H
+- Cores / threads: 14 C / 20 T, 1 socket  (OpenMP sweep max = 20)
+- Notes:           hybrid P+E cores; OMP_PLACES=cores, OMP_PROC_BIND=close matter
+
+## Verified
+- TRIVIAL device-code compile OK: 8 registers, 0 spill, sm_89
+- Runtime probe OK: cudaGetDeviceCount=1, sm_89, RTX 4050 Laptop

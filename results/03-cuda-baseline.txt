@@ -1,0 +1,83 @@
+# Phase 03 — CUDA baseline (naive) — results
+
+Captured on `ssh gpu` (neobox), 2026-11-11. GPU: RTX 4050 Laptop, sm_89, CUDA 13.4,
+`-arch=native`. 10% salt & pepper noise, seed 42, d=0.6 m=2 n=3, best of 5 reps.
+All numbers are the reported `ms` of the binary; CUDA adds the h2d/kernel/d2h split.
+
+## Correctness (the gate: maxdiff must be 0 — all maths is integer)
+
+| case | result |
+| --- | --- |
+| photo_1024, 10% noise, cuda vs seq | `identical=yes maxdiff=0`, psnr 25.20 both |
+| photo_4096, 10% noise, cuda vs seq | `identical=yes maxdiff=0`, psnr 25.37 both |
+| window 5 (`-n 5`), cuda vs seq | `identical=yes maxdiff=0` |
+| clean image (0% noise) passthrough | `identical=yes maxdiff=0` |
+| 1001x333 (not a multiple of the 16x16 block) | `identical=yes maxdiff=0`, byte-identical |
+| determinism, 5 cuda runs | `cmp c1.ppm c5.ppm` → identical |
+| `make check` (whole pipeline incl. cuda block) | PASS |
+
+The 1001x333 case makes every out-of-range thread take the `if (x >= w || y >= h) return;`
+path, so a guard bug changes pixels there even if 1024x1024 hides it.
+
+## compute-sanitizer (2026.3.0)
+
+| tool | case | errors |
+| --- | --- | --- |
+| memcheck | 1024x1024 | 0 |
+| memcheck | 4096x4096 | 0 |
+| memcheck | 1001x333 (guard path) | 0 |
+| memcheck | window 5 (`-n 5`) | 0 |
+| initcheck | 1024x1024 | 0 |
+
+`initcheck` is the one that matters for the mask: the device mask buffer is never copied
+H2D (nothing reads it before `detectKernel` writes it), so initcheck proves no thread reads
+mask bytes that `detectKernel` has not written - i.e. the launch really is a full barrier.
+
+## Performance — 1024x1024 (1.05 Mpix)
+
+| impl | ms | Mpix/s | vs seq |
+| --- | --- | --- | --- |
+| seq | 68.0 - 84.8 (median 70.5) | 14.9 | 1.0x |
+| omp 8 threads | 18.7 | 56.0 | 3.8x |
+| omp 14 threads | 13.8 | 76.2 | 5.1x |
+| **cuda naive** | **9.3** | **112** | **7.6x** |
+
+cuda split: h2d 0.37 + kernel 8.39 + d2h 0.52 = 9.28 ms. Transfer is 9% of the call.
+
+## Performance — 4096x4096 (16.8 Mpix)
+
+| impl | ms | Mpix/s | vs seq |
+| --- | --- | --- | --- |
+| seq | 1054 - 1084 (median 1084) | 15.5 | 1.0x |
+| omp 8 threads | 297 | 56.5 | 3.6x |
+| omp 14 threads | 223 | 75.3 | 4.9x |
+| **cuda naive** | **125** | **134** | **8.6x** |
+
+cuda split: h2d 5.24 + kernel 114.2 + d2h 5.89 = 125.3 ms. Transfer is 8.9% of the call.
+Transfer scales linearly with pixels and stays ~9% at both sizes — PCIe is not the limit
+for images this size, so a naive port already wins. (At ~256² it would not: 0.9 ms of
+transfers against a sub-millisecond kernel.)
+
+## Measurement notes (matter for phase 05)
+
+1. `ms` brackets the whole `denoise_cuda()` call; `h2d/kernel/d2h` bracket only the three
+   phases. Device buffers are allocated once and reused, but the *first* call in a fresh
+   process also pays CUDA context creation (~150 ms, ~2 s when the GPU is idle/asleep).
+   Consequence: `-r 1` on 1024² can print `ms=260` next to `kernel_ms=8.6`. The default
+   best-of-5 reports a warm run and the phases add up. Always use best-of-5, never a single
+   run (GPU.md gotcha 4).
+2. Laptop part, 70 W cap, shared with the display: seq spread at 1024² is 68-85 ms despite
+   `-r 1` x5. Report medians with min/max, as done above.
+
+## The three "be able to explain" answers
+
+1. **Two launches, not one**: the second kernel reads its neighbours' mask bytes, and a
+   kernel launch is the only global barrier available between blocks. `__syncthreads()`
+   only syncs one block, so it cannot order phase 4's reads against phase 3's writes
+   globally.
+2. **Faster than OpenMP at the same 9 reads/pixel**: thousands of resident threads hide
+   memory latency; the work per pixel is unchanged, so this is latency hiding, not fewer
+   bytes. 7.6-8.6x over seq is exactly what the extra occupancy buys on a naive kernel.
+3. **Why a small image can lose to the CPU**: end-to-end time includes two PCIe round
+   trips. Here they are ~9% at both sizes, so the GPU still wins; shrink the image until
+   the kernel is under ~1 ms and the fixed transfer cost dominates.

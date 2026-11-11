@@ -1,0 +1,4 @@
+impl,psnr,mae,identical_to_seq
+seq,32.2613,0.9100,yes
+omp,32.2613,0.9100,yes
+cuda,32.2613,0.9100,yes
