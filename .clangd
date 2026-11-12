@@ -3,13 +3,15 @@
 # 1. Headers are included by bare name from src/common (see any translation unit), so
 #    that directory is added here instead of relying on compile_commands.json.
 # 2. This box has no CUDA toolkit - nvcc and the CUDA headers live on the `gpu` host
-#    only (see GPU.md). clangd would report every CUDA keyword in .cu/.cuh as an unknown
-#    type, so diagnostics are suppressed for those two extensions. The authority for
-#    CUDA code is `ssh gpu 'cmake --build build'`. Everything C is still checked.
+#    only (see docs/GPU.md). clangd would report every CUDA keyword in .cu/.cuh as an
+#    unknown type, so diagnostics are suppressed for those two extensions. The authority
+#    for CUDA code is `ssh gpu 'cmake --build build'`. Everything C is still checked.
+#    NB: `Diagnostics` must be a SIBLING of `If`, not nested inside it - nested is
+#    silently invalid and the suppression does nothing.
 CompileFlags:
   Add: [-I../src/common]
 
 If:
   PathMatch: .*\.(cu|cuh)$
-  Diagnostics:
-    Suppress: [".*"]
+Diagnostics:
+  Suppress: '*'

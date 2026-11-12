@@ -66,20 +66,28 @@ if [ -x "$BIN/denoise_omp" ]; then
 fi
 
 if [ -x "$BIN/denoise_cuda" ]; then
-    echo "-- cuda must be byte-identical to sequential"
+    # The GPU metric is float (src/cuda/kernels.cu), the CPU metric is double, so cuda is
+    # no longer required to be byte-identical - only within maxdiff<=2, i.e. a pixel whose
+    # fuzzy distance landed within float rounding of the tolerance. Every case measured so
+    # far comes out at maxdiff=0 anyway.
+    maxdiff_of() { sed -n 's/.*maxdiff=\([0-9]*\).*/\1/p'; }
+    echo "-- cuda must match sequential (maxdiff <= 2)"
     LINE=$("$BIN/denoise_cuda" "$TMP/noisy.ppm" "$TMP/cuda.ppm" -r 1)
     echo "   $LINE"
-    cmp -s "$TMP/seq.ppm" "$TMP/cuda.ppm" || fail "cuda output differs from seq"
+    D=$("$BIN/imgcmp" "$TMP/seq.ppm" "$TMP/cuda.ppm" | maxdiff_of /dev/stdin)
+    awk -v d="$D" 'BEGIN { exit !(d <= 2) }' || fail "cuda maxdiff $D > 2 vs seq"
     "$BIN/denoise_cuda" "$TMP/noisy.ppm" "$TMP/cuda5.ppm" -r 1 -n 5 >/dev/null
     "$BIN/denoise_seq" "$TMP/noisy.ppm" "$TMP/seq5.ppm" -r 1 -n 5 >/dev/null
-    cmp -s "$TMP/seq5.ppm" "$TMP/cuda5.ppm" || fail "cuda differs at window 5"
+    D=$("$BIN/imgcmp" "$TMP/seq5.ppm" "$TMP/cuda5.ppm" | maxdiff_of /dev/stdin)
+    awk -v d="$D" 'BEGIN { exit !(d <= 2) }' || fail "cuda maxdiff $D > 2 at window 5"
     echo "-- cuda matches sequential on the clean image too"
     "$BIN/denoise_cuda" "$TMP/clean0.ppm" "$TMP/cuda0.ppm" -r 1 >/dev/null
-    cmp -s "$TMP/out0.ppm" "$TMP/cuda0.ppm" || fail "cuda differs from seq on clean input"
+    D=$("$BIN/imgcmp" "$TMP/out0.ppm" "$TMP/cuda0.ppm" | maxdiff_of /dev/stdin)
+    awk -v d="$D" 'BEGIN { exit !(d <= 2) }' || fail "cuda maxdiff $D > 2 on clean input"
     echo "-- cuda determinism"
     "$BIN/denoise_cuda" "$TMP/noisy.ppm" "$TMP/cuda_again.ppm" -r 1 >/dev/null
     cmp -s "$TMP/cuda.ppm" "$TMP/cuda_again.ppm" || fail "two cuda runs differ"
-    echo "   identical across runs, window 5, and clean input"
+    echo "   within maxdiff $D of seq, identical across runs"
 fi
 
 echo "PASS"

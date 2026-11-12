@@ -1,8 +1,8 @@
 # HPC final project - exam notes
 
-ASCII only. Build:
+ASCII only. Build from the repo root:
 
-    pandoc NOTES-HPC-EXAM.md -o notes.pdf --pdf-engine=tectonic \
+    pandoc docs/NOTES-HPC-EXAM.md -o notes.pdf --pdf-engine=tectonic \
         -V geometry:margin=1.5cm -V fontsize=9pt
 
 # 1. What the program does

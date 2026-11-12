@@ -130,9 +130,11 @@ is also why the phase-2 kernel is cheap: clean pixels exit immediately.
 ## 3. Repository map
 
 ```
-PLAN.md                     umbrella plan (already written)
-CODEBASE.md                 this file
-plans/01..06-*.md           one file per phase, execute in a new session each
+docs/PLAN.md                umbrella plan (already written)
+docs/CODEBASE.md            this file
+docs/plans/01..06-*.md      one file per phase, execute in a new session each
+docs/results/*.md           the write-up per phase; the raw numbers stay in results/*.csv
+docs/GPU.md                 GPU box access, hardware, gotchas
 CMakeLists.txt              build; CUDA behind a flag so a GPU-less box still builds
 
 src/common/image.h .c       PPM P6 read/write. Image{w,h,rgb} — the ONLY data structure.

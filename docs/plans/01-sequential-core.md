@@ -1,6 +1,6 @@
 # Phase 01 — Common core + sequential reference
 
-**Prereq:** read `CODEBASE.md` §1–§4. Runs on any machine with `gcc` + `make`. No GPU needed.
+**Prereq:** read `../CODEBASE.md` §1–§4. Runs on any machine with `gcc` + `make`. No GPU needed.
 **Time:** ~2 h. **This phase is the reference everything else is measured against.**
 
 ## Goal

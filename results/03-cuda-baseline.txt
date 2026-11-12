@@ -65,7 +65,7 @@ transfers against a sub-millisecond kernel.)
    process also pays CUDA context creation (~150 ms, ~2 s when the GPU is idle/asleep).
    Consequence: `-r 1` on 1024² can print `ms=260` next to `kernel_ms=8.6`. The default
    best-of-5 reports a warm run and the phases add up. Always use best-of-5, never a single
-   run (GPU.md gotcha 4).
+   run (docs/GPU.md gotcha 4).
 2. Laptop part, 70 W cap, shared with the display: seq spread at 1024² is 68-85 ms despite
    `-r 1` x5. Report medians with min/max, as done above.
 

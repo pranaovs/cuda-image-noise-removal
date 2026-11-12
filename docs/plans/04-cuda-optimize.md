@@ -6,13 +6,13 @@
 
 **Steps 1-3 and 6 below were executed on a throwaway branch and then deleted** — no
 `enum KernelVariant`, no `-v` flag and no `results/cuda_variants.csv` exist in the shipped
-tree. Only the naive pair ships; the numbers are in `results/04-cuda-variants.md`.
+tree. Only the naive pair ships; the numbers are in `../results/04-cuda-variants.md`.
 
 Measured: the shared-memory tile (`v3`) changed the kernel by +0.2% at 4096², because the
 kernel is bound by the double-precision fuzzy distance, not by global-memory traffic.
-`__ldg`/`__restrict__` are rejected by `cuda-course-scope.md` and were never shipped, and
+`__ldg`/`__restrict__` are rejected by `../cuda-course-scope.md` and were never shipped, and
 the tile was deleted after the measurement — the shipped CUDA code is the simple
-one-thread-per-pixel pair. Evidence: `results/04-cuda-variants.md`.
+one-thread-per-pixel pair. Evidence: `../results/04-cuda-variants.md`.
 
 ## Goal
 
@@ -39,7 +39,7 @@ comparison is the GPU analysis section of the report.
 - [x] 4. Block-size experiment: build once each at 8×8, 16×16, 32×32 (compile-time or a
       template parameter) and record occupancy notes. Do not guess — measure.
 - [x] 5. Correctness: all three variants must still give `maxdiff=0` vs seq.
-- [x] 6. Store the results table — recorded as a markdown table in `results/04-cuda-variants.md`
+- [x] 6. Store the results table — recorded as a markdown table in `../results/04-cuda-variants.md`
       §1–§4 (the CSV was never committed; that file is the evidence).
 
 ## Verify
